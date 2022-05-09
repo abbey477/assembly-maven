@@ -1,24 +1,24 @@
 #! /bin/shell
 
-#======================================================================
-# 项目重启shell脚本
-# 先调用shutdown.sh停服
-# 然后调用startup.sh启动服务
+#==================================================== ======================
+# Project restart shell script
+# First call shutdown.sh to stop the server
+# Then call startup.sh to start the service
 #
 # author: geekidea
 # date: 2018-12-2
-#======================================================================
+#==================================================== ======================
 
-# 项目名称
+# project name
 APPLICATION="@project.name@"
 
-# 项目启动jar包名称
+# Project startup jar package name
 APPLICATION_JAR="@build.finalName@.jar"
 
-# 停服
+# stop
 echo stop ${APPLICATION} Application...
 sh shutdown.sh
 
-# 启动服务
+# start the service
 echo start ${APPLICATION} Application...
 sh startup.sh

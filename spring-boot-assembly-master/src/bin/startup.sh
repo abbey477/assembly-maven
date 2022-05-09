@@ -1,127 +1,126 @@
 #! /bin/shell
 
-#======================================================================
-# 项目启动shell脚本
-# boot目录: spring boot jar包
-# config目录: 配置文件目录
-# logs目录: 项目运行日志目录
-# logs/startup.log: 记录启动日志
-# logs/back目录: 项目运行日志备份目录
-# nohup后台运行
+#==================================================== ======================
+# Project startup shell script
+# boot directory: spring boot jar package
+# config directory: configuration file directory
+# logs directory: project running log directory
+# logs/startup.log: record startup log
+# logs/back directory: project running log backup directory
+# nohup run in the background
 #
 # author: geekidea
 # date: 2018-12-2
-#======================================================================
+#==================================================== ======================
 
-# 项目名称
+# project name
 APPLICATION="@project.name@"
 
-# 项目启动jar包名称
+# Project startup jar package name
 APPLICATION_JAR="@build.finalName@.jar"
 
-# bin目录绝对路径
+#bin directory absolute path
 BIN_PATH=$(cd `dirname $0`; pwd)
-# 进入bin目录
+# Enter the bin directory
 cd `dirname $0`
-# 返回到上一级项目根目录路径
-cd ..
-# 打印项目根目录绝对路径
-# `pwd` 执行系统命令并获得结果
+# Return to the root directory path of the previous project
+cd..
+# print the absolute path of the project root directory
+# `pwd` execute system command and get result
 BASE_PATH=`pwd`
 
-# 外部配置文件绝对目录,如果是目录需要/结尾，也可以直接指定文件
-# 如果指定的是目录,spring则会读取目录中的所有配置文件
+# The absolute directory of the external configuration file, if the directory needs / ends, you can also specify the file directly
+# If you specify a directory, spring will read all configuration files in the directory
 CONFIG_DIR=${BASE_PATH}"/config/"
 
-# 项目日志输出绝对路径
+# Project log output absolute path
 LOG_DIR=${BASE_PATH}"/logs"
 LOG_FILE="${APPLICATION}.log"
 LOG_PATH="${LOG_DIR}/${LOG_FILE}"
-# 日志备份目录
+# log backup directory
 LOG_BACK_DIR="${LOG_DIR}/back/"
 
-# 项目启动日志输出绝对路径
+# Project startup log output absolute path
 LOG_STARTUP_PATH="${LOG_DIR}/startup.log"
 
-# 当前时间
+# current time
 NOW=`date +'%Y-%m-%m-%H-%M-%S'`
 NOW_PRETTY=`date +'%Y-%m-%m %H:%M:%S'`
 
-# 启动日志
-STARTUP_LOG="================================================ ${NOW_PRETTY} ================================================\n"
+# start log
+STARTUP_LOG="================================================== = ${NOW_PRETTY} =============================================== ===\n"
 
-# 如果logs文件夹不存在,则创建文件夹
+# If the logs folder does not exist, create the folder
 if [[ ! -d "${LOG_DIR}" ]]; then
   mkdir "${LOG_DIR}"
 fi
 
-# 如果logs/back文件夹不存在,则创建文件夹
+# If the logs/back folder does not exist, create the folder
 if [[ ! -d "${LOG_BACK_DIR}" ]]; then
   mkdir "${LOG_BACK_DIR}"
 fi
 
-# 如果项目运行日志存在,则重命名备份
+# If the project run log exists, rename the backup
 if [[ -f "${LOG_PATH}" ]]; then
-	mv ${LOG_PATH} "${LOG_BACK_DIR}/${APPLICATION}_back_${NOW}.log"
+mv ${LOG_PATH} "${LOG_BACK_DIR}/${APPLICATION}_back_${NOW}.log"
 fi
 
-# 创建新的项目运行日志
+# Create a new project run log
 echo "" > ${LOG_PATH}
 
-# 如果项目启动日志不存在,则创建,否则追加
+# If the project startup log does not exist, create it, otherwise append
 #echo "${STARTUP_LOG}" >> ${LOG_STARTUP_PATH}
 
-#==========================================================================================
+#==================================================== ===============================================
 # JVM Configuration
-# -Xmx256m:设置JVM最大可用内存为256m,根据项目实际情况而定，建议最小和最大设置成一样。
-# -Xms256m:设置JVM初始内存。此值可以设置与-Xmx相同,以避免每次垃圾回收完成后JVM重新分配内存
-# -Xmn512m:设置年轻代大小为512m。整个JVM内存大小=年轻代大小 + 年老代大小 + 持久代大小。
-#          持久代一般固定大小为64m,所以增大年轻代,将会减小年老代大小。此值对系统性能影响较大,Sun官方推荐配置为整个堆的3/8
-# -XX:MetaspaceSize=64m:存储class的内存大小,该值越大触发Metaspace GC的时机就越晚
-# -XX:MaxMetaspaceSize=320m:限制Metaspace增长的上限，防止因为某些情况导致Metaspace无限的使用本地内存，影响到其他程序
-# -XX:-OmitStackTraceInFastThrow:解决重复异常不打印堆栈信息问题
-#==========================================================================================
+# -Xmx256m: Set the maximum available memory of the JVM to 256m, which depends on the actual situation of the project. It is recommended to set the minimum and maximum values ​​to be the same.
+# -Xms256m: Set JVM initial memory. This value can be set the same as -Xmx to avoid the JVM reallocating memory after each garbage collection is done
+# -Xmn512m: Set the young generation size to 512m. The entire JVM memory size = young generation size + old generation size + persistent generation size.
+# The persistent generation is generally fixed at 64m, so increasing the young generation will reduce the size of the old generation. This value has a great impact on system performance, and Sun officially recommends configuring it as 3/8 of the entire heap
+# -XX:MetaspaceSize=64m: The memory size of the storage class, the larger the value, the later the time to trigger Metaspace GC
+# -XX:MaxMetaspaceSize=320m: Limit the upper limit of Metaspace growth to prevent Metaspace from using local memory indefinitely due to certain circumstances, affecting other programs
+# -XX:-OmitStackTraceInFastThrow: Solve the problem of not printing stack information for repeated exceptions
+#==================================================== ============================================
 JAVA_OPT="-server -Xms256m -Xmx256m -Xmn512m -XX:MetaspaceSize=64m -XX:MaxMetaspaceSize=256m"
-JAVA_OPT="${JAVA_OPT} -XX:-OmitStackTraceInFastThrow"
+JAVA_OPT="${JAVA_OPT}-XX:-OmitStackTraceInFastThrow"
 
-#=======================================================
-# 将命令启动相关日志追加到日志文件
-#=======================================================
+#==================================================== ======
+# Append command startup related logs to the log file
+#==================================================== ======
 
-# 输出项目名称
+# output project name
 STARTUP_LOG="${STARTUP_LOG}application name: ${APPLICATION}\n"
-# 输出jar包名称
-STARTUP_LOG="${STARTUP_LOG}application jar  name: ${APPLICATION_JAR}\n"
-# 输出项目根目录
+# output jar package name
+STARTUP_LOG="${STARTUP_LOG}application jar name: ${APPLICATION_JAR}\n"
+# output project root directory
 STARTUP_LOG="${STARTUP_LOG}application root path: ${BASE_PATH}\n"
-# 输出项目bin路径
-STARTUP_LOG="${STARTUP_LOG}application bin  path: ${BIN_PATH}\n"
-# 输出项目config路径
+# Output project bin path
+STARTUP_LOG="${STARTUP_LOG}application bin path: ${BIN_PATH}\n"
+# output project config path
 STARTUP_LOG="${STARTUP_LOG}application config path: ${CONFIG_DIR}\n"
-# 打印日志路径
-STARTUP_LOG="${STARTUP_LOG}application log  path: ${LOG_PATH}\n"
-# 打印JVM配置
+# print log path
+STARTUP_LOG="${STARTUP_LOG}application log path: ${LOG_PATH}\n"
+# print JVM configuration
 STARTUP_LOG="${STARTUP_LOG}application JAVA_OPT : ${JAVA_OPT}\n"
 
 
-# 打印启动命令
+# print startup command
 STARTUP_LOG="${STARTUP_LOG}application startup command: nohup java ${JAVA_OPT} -jar ${BASE_PATH}/boot/${APPLICATION_JAR} --spring.config.location=${CONFIG_DIR} > ${LOG_PATH} 2>&1 &\n"
 
-
-#======================================================================
-# 执行启动命令：后台启动项目,并将日志输出到项目根目录下的logs文件夹下
-#======================================================================
+#==================================================== ======================
+# Execute the startup command: start the project in the background, and output the log to the logs folder in the project root directory
+#==================================================== ======================
 nohup java ${JAVA_OPT} -jar ${BASE_PATH}/boot/${APPLICATION_JAR} --spring.config.location=${CONFIG_DIR} > ${LOG_PATH} 2>&1 &
 
 
-# 进程ID
+# Process ID
 PID=$(ps -ef | grep "${APPLICATION_JAR}" | grep -v grep | awk '{ print $2 }')
 STARTUP_LOG="${STARTUP_LOG}application pid: ${PID}\n"
 
-# 启动日志追加到启动日志文件中
+# Append the startup log to the startup log file
 echo -e ${STARTUP_LOG} >> ${LOG_STARTUP_PATH}
-# 打印启动日志
+# print startup log
 echo -e ${STARTUP_LOG}
 
-# 打印项目日志
+# print project log
 tail -f ${LOG_PATH}
